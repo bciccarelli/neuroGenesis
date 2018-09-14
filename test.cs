@@ -13,7 +13,7 @@ namespace AI
             neuralData data = new neuralData(input, output);
             neuralNetwork net = new neuralNetwork(data, 1000);
             net.createNode(1);
-            Console.WriteLine(net.nodes);
+            Console.WriteLine(net.runNetwork(new float[] { (float)2 }));
             Console.ReadLine();
         }
 

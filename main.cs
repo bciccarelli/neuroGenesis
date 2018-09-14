@@ -25,10 +25,10 @@ namespace AI
         public int max;
         public bool flexible;
         public neuralData data;
-        public List<node> nodes;
+        public List<node> nodes = new List<node>();
         public bool useMemory;
+        
         public neuralNetwork(neuralData Data, int maxNumOfNodes) {
-            Console.WriteLine(Data);
             max = maxNumOfNodes;
             data = Data;
             nodes.Add(new node(data.objectData, false));
@@ -43,16 +43,23 @@ namespace AI
         }
         public void createNode(int pos) {
             nodes.Insert(pos, new node(data.objectData, false));
+            for (int i = nodes.Count - 2; i > 0; i --) {
+                nodes[i].pastNodes.Add(nodes[i-1]);
+            }
         }
-        public void testNodes() {
-        
+        public float runNetwork(float[] input) {
+            Console.WriteLine(input[0]);
+
+            nodes[0].act(input);
+            return input[0];
         }
     }
     class node {
         public Type input;
         public bool isFinal = false;
         public Type output;
-        public node nextNode;
+        public float value;
+        public List<node> pastNodes = new List<node>();
         //public List<>
         public node(Type input, Type output, bool final)
         {
@@ -66,15 +73,17 @@ namespace AI
             this.input = dataType;
             this.output = dataType;
         }
-        public void act(int[] input) {
-            input[0]++;
-            nextNode.act(input);
+        public void act(float[] input) {
+            
+            input[0]+=(float)1;
+            this.value = input[0];
+            
         }
 
         public void act(string[] input)
         {
             input[0]+=" ";
-            nextNode.act(input);
+            //nextNodes[0].act(input);
         }
     }
 }
