@@ -9,81 +9,115 @@ namespace AI
     class neuralData {
 
         public Type objectData;
-        public neuralData(List<int[]> input, List<int> output) {
-            objectData = typeof(int);
-            List<int[]> inputData = input;
-            List<int> outputData = output;
-        }
+        public List<float[]> inputData;
+        public List<float> outputData;
         public neuralData(List<float[]> input, List<float> output)
         {
             objectData = typeof(float);
-            List<float[]> inputData = input;
-            List<float> outputData = output;
+            inputData = input;
+            outputData = output;
         }
     }
-    class neuralNetwork {
-        public int max;
-        public bool flexible;
-        public neuralData data;
-        public List<node> nodes = new List<node>();
-        public bool useMemory;
+    static class neuralNetwork {
+        public static float constant = 10;
+        public static int topLayer = 2;
+        public static int max;
+        public static bool flexible;
+        public static neuralData data;
+        public static List<node> nodes = new List<node>();
+        public static bool useMemory;
         
-        public neuralNetwork(neuralData Data, int maxNumOfNodes) {
-            max = maxNumOfNodes;
-            data = Data;
-            nodes.Add(new node(data.objectData, false));
-            nodes.Add(new node(data.objectData, true));
-        }
-        public neuralNetwork(neuralData Data, bool flexible)
+        public static void createNetwork(neuralData Data)
         {
             flexible = true;
             data = Data;
-            nodes.Add(new node(data.objectData, false));
-            nodes.Add(new node(data.objectData, true));
+            nodes.Add(new node(data.objectData, false, 0, "start"));
+            nodes.Add(new node(data.objectData, true, 2, "end"));
         }
-        public void createNode(int pos) {
-            nodes.Insert(pos, new node(data.objectData, false));
-            for (int i = nodes.Count - 2; i > 0; i --) {
-                nodes[i].pastNodes.Add(nodes[i-1]);
+        public static void createNode(int layer) {
+            nodes.Insert(1, new node(data.objectData, false, layer, "new"));
+            for (int i = 1; i < nodes.Count; i++) {
+                nodes[i].pastNodes.Add(nodes[i - 1].id);
             }
         }
-        public float runNetwork(float[] input) {
-            Console.WriteLine(input[0]);
-
-            nodes[0].act(input);
-            return input[0];
+        public static int getNodeByID(string id) {
+            for (int i = 0; i < nodes.Count; i++) {
+                if (nodes[i].id == id) {
+                    return i;
+                }
+            }
+            Console.WriteLine("No such ID exists");
+            return -1;
+        }
+        public static float runNetwork(float[] input) {
+            for (int i = 0; i < topLayer+1; i++) {
+                foreach (node n in nodes)
+                {
+                    if (n.layer == i)
+                    {
+                        Console.WriteLine("Node id: " + n.id + ", Layer: " + i);
+                        if (n.layer == topLayer)
+                        {
+                            n.act();
+                            return n.value[0];
+                        }
+                        if (n.layer == 0)
+                        {
+                            n.act(input);
+                            
+                        }
+                        else
+                        {
+                            n.act();
+                        }
+                        //Console.WriteLine(n.value[0]);
+                    }
+                }
+            }
+            return (float)0;
+        }
+        public static float closeness (float data, float factor) {
+            return (float)(1-(Math.Abs(Math.Atan(factor*data))/(Math.PI/2)));
+        }
+        public static float estimateAccuracy() {
+            float accuracy = 0;
+            for (int i = 0; i < data.inputData[0].Length; i++) {
+                
+                accuracy += closeness(runNetwork(data.inputData[0])-data.outputData[i],constant)/data.outputData.Count;
+            }
+            return accuracy;
+        }
+        public static float train(float minAccuracy) {
+            float currentAccuracy = 0;
+            while (currentAccuracy < minAccuracy) {
+                //currentAccuracy = estimateAccuracy();
+                currentAccuracy += (float).1;
+            }
+            return currentAccuracy;
         }
     }
     class node {
         public Type input;
-        public bool isFinal = false;
         public Type output;
-        public float value;
-        public List<node> pastNodes = new List<node>();
+        public float[] value;
+        public int layer;
+        public string id;
+        public List<string> pastNodes = new List<string>();
         //public List<>
-        public node(Type input, Type output, bool final)
+        
+        public node(Type dataType, bool final, int layer, string id)
         {
-            isFinal = final;
-            this.input = input;
-            this.output = output;
-        }
-        public node(Type dataType, bool final)
-        {
-            isFinal = final;
+            this.id = id;
+            this.layer = layer;
             this.input = dataType;
             this.output = dataType;
         }
-        public void act(float[] input) {
-            
-            input[0]+=(float)1;
-            this.value = input[0];
-            
+        public void act() {
+            value = neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[0])].value;
         }
-
-        public void act(string[] input)
+        public void act(float[] input)
         {
-            input[0]+=" ";
-            //nextNodes[0].act(input);
+            value = input;
         }
     }
 }

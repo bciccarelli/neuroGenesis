@@ -5,15 +5,16 @@ namespace AI
 {
     class App
     {
-        public static List<int[]> input = new List<int[]> { new int[] { 0, 1, 2 }, new int[] { 1, 2, 3 } };
-        public static List<int> output = new List<int> { 0, 1, 2 };
+        public static List<float[]> input = new List<float[]> { new float[] { 0, 1, 2 }, new float[] { 1, 2, 3 } };
+        public static List<float> output = new List<float> { 0, 1, 2 };
 
         public static void Main(string[] args)
         {
             neuralData data = new neuralData(input, output);
-            neuralNetwork net = new neuralNetwork(data, 1000);
-            net.createNode(1);
-            Console.WriteLine(net.runNetwork(new float[] { (float)2 }));
+            neuralNetwork.createNetwork(data);
+            neuralNetwork.createNode(1);
+            Console.WriteLine(neuralNetwork.runNetwork(new float[] { (float)1 }));
+            Console.WriteLine(neuralNetwork.estimateAccuracy());
             Console.ReadLine();
         }
 
