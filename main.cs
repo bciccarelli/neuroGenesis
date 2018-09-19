@@ -56,17 +56,24 @@ namespace AI
                         if (nodes[j].layer == topLayer)
                         {
                             nodes[j].act();
-                            //Console.WriteLine("Final node value: " + nodes[j].add[0]);
+
+                            //Console.WriteLine(nodes[j].add.Count);
+                            //Console.WriteLine(nodes[j].add[1].Count);
+
+                            //Console.WriteLine("Final node value: " + nodes[j].add[1][0]);
 
                             return nodes[j].value[0];
                         }
                         if (nodes[j].layer == 0)
                         {
                             nodes[j].act(input);
+                            
                         }
                         else
                         {
                             nodes[j].act();
+                            //Console.WriteLine(nodes[j].id + " node value: " + nodes[j].value[0]);
+
                         }
                         //Console.WriteLine(n.value[0]);
                     }
@@ -75,13 +82,17 @@ namespace AI
             return (float)0;
         }
         public static float closeness (float data, float factor) {
-            return (float)(1-(Math.Abs(factor*data)));
+            float num = (float)(1 - (Math.Abs(factor * data)));
+            //if (num < 0) {
+            //    num = 0;
+            //}
+            return num;
         }
         public static float estimateAccuracy() {
             float accuracy = 0;
             float value = 0;
-            for (int i = 0; i < data.inputData[0].Length; i++) {
-                value = runNetwork(data.inputData[0]);
+            for (int i = 0; i < data.inputData.Count; i++) {
+                value = runNetwork(data.inputData[i]);
                 //Console.WriteLine("Current value: " + value + ", Expected value: " + data.outputData[i] + ", Accuracy: " + closeness(value - data.outputData[i], constant));
                 accuracy += closeness(value - data.outputData[i], constant)/data.inputData[0].Length;
                 //Console.WriteLine(accuracy);
@@ -140,8 +151,8 @@ namespace AI
     }
     class node {
         
-        public List<float> add = new List<float>(new float[] { 0 });
-        public List<float> multiply = new List<float>(new float[] { 1 });
+        public List<List<float>> add = new List<List<float>>();
+        public List<List<float>> multiply = new List<List<float>>();
         public List<float> value = new List<float>( new float[] { 0 } );
         public int layer;
         public string id;
@@ -151,70 +162,84 @@ namespace AI
         {
             this.id = id;
             this.layer = layer;
+            add.Add(new List<float>( new float[] { 0 } ));
+            multiply.Add(new List<float>( new float[] { 1 } ));
         }
         public void update() {
             while (pastNodes.Count > add.Count - 1) {
-                add.Add(0);
-                multiply.Add(1);
+                add.Add(new List<float>(new float[] { 1 }));
+                multiply.Add(new List<float>(new float[] { 1 }));
             }
         }
         public void train(float step) {
-            for (int i = 0; i < add.Count-1; i++) {
-                float accuracy = neuralNetwork.estimateAccuracy();
-                add[i] += step;
+            for (int i = 0; i < add.Count; i++) {
+                for (int j = 0; j < add[i].Count; j++)
+                {
+                    float accuracy = neuralNetwork.estimateAccuracy();
+                    add[i][j] += step;
+
+                    float accuracyAfterStep = neuralNetwork.estimateAccuracy();
+
+                    //Console.WriteLine("a b: " + accuracy + ", a a: " + accuracyAfterStep);
+                    if (i == 1)
+                    {
+                        Console.WriteLine("before: " + accuracy + ", after: " + accuracyAfterStep);
+                    }
+                    if (accuracyAfterStep < accuracy)
+                    {
+                        add[i][j] -= step;
+                    }
+                    accuracy = neuralNetwork.estimateAccuracy();
+                    add[i][j] -= step;
+                    accuracyAfterStep = neuralNetwork.estimateAccuracy();
+
+                    //Console.WriteLine("After subtract a b: " + accuracy + ", a a: " + accuracyAfterStep);
+                    if (accuracyAfterStep < accuracy)
+                    {
+
+                        add[i][j] += step;
+                    }
+
+                    accuracy = neuralNetwork.estimateAccuracy();
+                    multiply[i][j] += step;
+                    accuracyAfterStep = neuralNetwork.estimateAccuracy();
+                    if (accuracyAfterStep < accuracy)
+                    {
+                        multiply[i][j] -= step;
+                    }
+                    accuracy = neuralNetwork.estimateAccuracy();
+                    multiply[i][j] -= step;
+                    accuracyAfterStep = neuralNetwork.estimateAccuracy();
+                    if (accuracyAfterStep < accuracy)
+                    {
+                        multiply[i][j] += step;
+                    }
+                }
                 
-                float accuracyAfterStep = neuralNetwork.estimateAccuracy();
-
-                Console.WriteLine("a b: " + accuracy + ", a a: " + accuracyAfterStep);
-                if (i == 0)
-                {
-                    Console.WriteLine(accuracyAfterStep);
-                }
-                if (accuracyAfterStep < accuracy)
-                {
-                    
-                    add[i] -= step;
-                }
-                accuracy = neuralNetwork.estimateAccuracy();
-                add[i] -= step;
-                accuracyAfterStep = neuralNetwork.estimateAccuracy();
-
-                Console.WriteLine("After subtract a b: " + accuracy + ", a a: " + accuracyAfterStep);
-                if (accuracyAfterStep < accuracy)
-                {
-                    
-                    add[i] += step;
-                }
-
-                accuracy = neuralNetwork.estimateAccuracy();
-                multiply[i] += step;
-                accuracyAfterStep = neuralNetwork.estimateAccuracy();
-                if (accuracyAfterStep < accuracy)
-                {
-                    multiply[i] -= step;
-                }
-                accuracy = neuralNetwork.estimateAccuracy();
-                multiply[i] -= step;
-                accuracyAfterStep = neuralNetwork.estimateAccuracy();
-                if (accuracyAfterStep < accuracy)
-                {
-                    multiply[i] += step;
-                }
             }
         }
         public void act() {
             value[0] = 0;
-            for (int i = 1; i < add.Count-1; i++) {
-                value[0] += add[1] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i-1])].value[0];
-            }
-            value[0] += add[0];
-            Console.WriteLine("Act Add: " + add[0]);
-            for (int i = 1; i < multiply.Count-1; i++)
-            {
-                value[0] *= multiply[i] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i-1])].value[0];
-            }
-            value[0] *= multiply[0];
+            
+            for (int i = 1; i < add.Count; i++) {
+                for (int j = 0  ; j < add[i].Count; j++)
+                {
+                    value[0] += add[i][j] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[j];
+                    //Console.WriteLine("id: " + this.id + ", past id: " + pastNodes[i - 1] + ", past count " + (neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[0]));
 
+                }
+            }
+            value[0] += add[0][0];
+
+            for (int i = 1; i < add.Count; i++)
+            {
+                for (int j = 0; j < add[i].Count; j++)
+                {
+                    value[0] *= multiply[i][j] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[j];
+                }
+            }
+            value[0] *= multiply[0][0];
+            
         }
         public void act(float[] input)
         {
@@ -222,6 +247,27 @@ namespace AI
             foreach (float f in input) {
                 value.Add(f);
             }
+        }
+    }
+    static class logger
+    {
+        static string write;
+        public static void logNode(node n) {
+            write = "Add: ";
+            foreach (List<float> f in n.add) {
+                foreach (float fl in f) {
+                    write += "[" + fl + "], ";
+                }
+            }
+            write += "... Multiply: ";
+            foreach (List<float> f in n.multiply)
+            {
+                foreach (float fl in f)
+                {
+                    write += "[" + fl + "], ";
+                }
+            }
+            Console.WriteLine(write);
         }
     }
 }
