@@ -5,24 +5,28 @@ namespace AI
 {
     class App
     {
-        public static List<float[]> input = new List<float[]> { new float[] { 1 }, new float[] { 2 }, new float[] { 3 } };
-        public static List<float> output = new List<float> { 2, 4, 6 };
-
+        public static List<decimal[]> input = new List<decimal[]> { a(1), a(2), a(3), a(4), a(10), a(20), a(50) };
+        public static List<decimal> output = new List<decimal> { 2, 4, 6, 8, 20, 40, 100 };
+        public static decimal[] a(int b) {
+            return new decimal[] { (decimal)b };
+        }
         public static void Main(string[] args)
         {
             neuralData data = new neuralData(input, output);
             neuralNetwork.createNetwork(data);
             neuralNetwork.createNode(1);
 
-            Console.WriteLine(neuralNetwork.estimateAccuracy());
-            neuralNetwork.train(200);
-            Console.WriteLine("Achieved Accuracy: " + neuralNetwork.estimateAccuracy() + "%");
+            Console.WriteLine(neuralNetwork.estimateAccuracy()*100);
+            neuralNetwork.train((decimal).90);
+            Console.WriteLine("Achieved Accuracy: " + neuralNetwork.estimateAccuracy()*100 + "%");
             logger.logNode(neuralNetwork.nodes[0]);
             logger.logNode(neuralNetwork.nodes[1]);
             logger.logNode(neuralNetwork.nodes[2]);
             Console.WriteLine(neuralNetwork.runNetwork(input[0]));
             Console.WriteLine(neuralNetwork.runNetwork(input[1]));
             Console.WriteLine(neuralNetwork.runNetwork(input[2]));
+
+            Console.WriteLine(neuralNetwork.runNetwork(new decimal[] {  }));
             Console.ReadLine();
         }
 
