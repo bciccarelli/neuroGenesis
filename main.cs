@@ -186,14 +186,13 @@ namespace AI
                 for (int j = 0; j < add[i].Count; j++)
                 {
                     accuracy = neuralNetwork.estimateAccuracy();
-                    step1 = step * (rand.Next(0, 10)-5);
-                    step2 = step * (rand.Next(0, 10)-5);
+                    step1 = step * (rand.Next(0, 100)-50);
+                    step2 = step * (rand.Next(0, 100)-50);
                     multiply[i][j] += step1;
                     add[i][j] += step2;
                     accuracyAfterStep = neuralNetwork.estimateAccuracy();
                     if (accuracyAfterStep <= accuracy)
                     {
-
                         multiply[i][j] -= step1;
                         add[i][j] -= step2;
                     }
@@ -217,13 +216,11 @@ namespace AI
 
                 }
             }
-
-
             for (int i = 1; i < add.Count; i++)
             {
                 for (int j = 0; j < add[i].Count; j++)
                 {
-                    value[0] *= 1 + multiply[i][j] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[j];
+                    value[0] *= 1 + multiply[i][j] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[j])].value[j];
                 }
             }
             value[0] *= multiply[0][0];

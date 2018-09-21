@@ -17,7 +17,7 @@ namespace AI
             neuralNetwork.createNode(1);
 
             Console.WriteLine(neuralNetwork.estimateAccuracy()*100);
-            neuralNetwork.train((decimal).90);
+            neuralNetwork.train((decimal).99);
             Console.WriteLine("Achieved Accuracy: " + neuralNetwork.estimateAccuracy()*100 + "%");
             logger.logNode(neuralNetwork.nodes[0]);
             logger.logNode(neuralNetwork.nodes[1]);
@@ -26,7 +26,7 @@ namespace AI
             Console.WriteLine(neuralNetwork.runNetwork(input[1]));
             Console.WriteLine(neuralNetwork.runNetwork(input[2]));
 
-            Console.WriteLine(neuralNetwork.runNetwork(new decimal[] {  }));
+            Console.WriteLine(neuralNetwork.runNetwork(new decimal[] { 100 }));
             Console.ReadLine();
         }
 
