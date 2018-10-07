@@ -212,7 +212,7 @@ namespace AI
                         //Console.WriteLine(steps[d]);
                     variables[a][b] += steps[a];
                     
-                }
+                }   
                 
             }
             accuracyAfterStep = neuralNetwork.estimateAccuracy();
@@ -224,9 +224,7 @@ namespace AI
                     {
                         //Console.WriteLine(steps[d]);
                         variables[a][b] -= steps[a];
-                        
                     }
-
                 }
             }
             else
@@ -236,7 +234,6 @@ namespace AI
         }
         public void act() {
             value[0] = 0;
-
             /*for (int i = 1; i < add.Count; i++)
             {
                 for (int j = 0; j < add[i].Count; j++)
