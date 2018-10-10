@@ -5,8 +5,8 @@ namespace AI
 {
     class App
     {
-        public static List<decimal[]> input = new List<decimal[]> {a(1), a(2), a(3), a(4), a(10), a(20), a(50), a(100) };
-        public static List<decimal> output = new List<decimal> { 2, 4, 6, 8, 20, 40, 100, 200 };
+        public static List<decimal[]> input = new List<decimal[]> {a(1), a(2), a(3), a(4), a(5)};
+        public static List<decimal> output = new List<decimal> { 1, 4, 9, 16, 25 };
         public static decimal[] a(double b) {
             return new decimal[] { (decimal)b };
         }
@@ -14,10 +14,11 @@ namespace AI
         {
             neuralData data = new neuralData(input, output);
             neuralNetwork.createNetwork(data);
-            neuralNetwork.createNode(1);
+            neuralNetwork.createNode(1, 5);
 
             Console.WriteLine(neuralNetwork.estimateAccuracy()*100);
-            neuralNetwork.train((decimal).9998);
+            neuralNetwork.train((decimal).999);
+
             Console.WriteLine("Achieved Accuracy: " + neuralNetwork.estimateAccuracy()*100 + "%");
             logger.logNode(neuralNetwork.nodes[0]);
             logger.logNode(neuralNetwork.nodes[1]);

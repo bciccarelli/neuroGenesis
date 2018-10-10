@@ -14,6 +14,7 @@ namespace AI
         }
     }
     static class neuralNetwork {
+        public static int plateau = 10000;
         public static decimal constant = 5;
         public static decimal step = (decimal).0001;
         public static int topLayer = 2;
@@ -28,14 +29,23 @@ namespace AI
             nodes.Add(new node(typeof(decimal), false, 0, "start"));
             nodes.Add(new node(typeof(decimal), true, 2, "end"));
         }
-        public static void createNode(int layer) {
-            nodes.Insert(1, new node(typeof(decimal), false, layer, "new"));
-            for (int i = 1; i < nodes.Count; i++) {
-                nodes[i].pastNodes.Add(nodes[i - 1].id);
-            }
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                nodes[i].update();
+        public static void createNode(int layer, int num) {
+            for (int k = 0; k < num; k++) {
+                nodes.Insert(1, new node(typeof(decimal), false, layer, "new"));
+                for (int j = 0; j < layer; j++)
+                {
+                    for (int i = 1; i < nodes.Count; i++)
+                    {
+                        if (!nodes[i].pastNodes.Contains(nodes[i - 1].id))
+                        {
+                            nodes[i].pastNodes.Add(nodes[i - 1].id);
+                        };
+                    }
+                }
+                for (int i = 0; i < nodes.Count; i++)
+                {
+                    nodes[i].update();
+                }
             }
         }
         public static int getNodeByID(string id) {
@@ -127,31 +137,23 @@ namespace AI
         }
         public static void train(string info)
         {
-            if (info == "until cap") {
-                decimal cap = 1;
-                decimal currentAccuracy = 0;
-                decimal newAccuracy = 0;
-                while (currentAccuracy < cap)
-                {
-                    for (int i = 0; i < nodes.Count; i++)
+            switch (info) {
+                case "until cap":
+                    decimal best = (decimal)0;
+                    for(int i = 0; i < plateau; i++)
                     {
-                        nodes[i].train(step);
+                        for (int j = 0; j < nodes.Count; j++)
+                        {
+                            nodes[j].train(step);
+                        }
+                        decimal currentAcc = estimateAccuracy();
+                        if (currentAcc > best) {
+                            best = currentAcc;
+                            i = 0;
+                        }
                     }
-                    newAccuracy = estimateAccuracy();
-                    
-                    if (currentAccuracy > newAccuracy)
-                    {
-                        cap = newAccuracy;
-                    }
-                    else {
-                        currentAccuracy = estimateAccuracy();
-                    }
-                    
-
-                }
+                    break;
             }
-            
-
         }
     }
     class node {
@@ -163,7 +165,7 @@ namespace AI
         public string id;
         public List<string> pastNodes = new List<string>();
         public void mult() {
-            value[0] += variables[0][0];
+            value[0] *= variables[0][0];
             for (int i = 1; i < variables[0].Count; i++)
             {
                 value[0] += variables[0][i] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i-1])].value[0];
@@ -171,28 +173,36 @@ namespace AI
         }
         public void add()
         {
-
             value[0] += variables[1][0];
             for (int i = 1; i < variables[1].Count; i++)
             {
                     value[0] += variables[1][i] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i-1])].value[0];
             }
-            
+        }
+        public void exp()
+        {
+            for (int i = 1; i < variables[2].Count; i++)
+            {
+                value[0] += (decimal)Math.Pow((double)neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[0], (double)variables[2][i]);
+            }
         }
         public node(Type dataType, bool final, int layer, string id)
         {
             this.id = id;
             this.layer = layer;
-            functions = new List<Action>(new Action[] { add, mult });
+            functions = new List<Action>(new Action[] { add, mult, exp });
+            variables.Add(new List<decimal>());
             variables.Add(new List<decimal>());
             variables.Add(new List<decimal>());
             variables[0].Add(0);
             variables[1].Add(0);
+            variables[2].Add(0);
         }
         public void update() {
             while (pastNodes.Count > variables[0].Count-1) {
                 variables[0].Add(0);
                 variables[1].Add(0);
+                variables[2].Add(2);
             }
         }
         public void train(decimal step) {
@@ -202,18 +212,15 @@ namespace AI
             //decimal step2;
             decimal accuracyAfterStep;
             accuracy = neuralNetwork.estimateAccuracy();
-            
             for (int a = 0; a < variables.Count; a++)
             {
                 for (int b = 0; b < variables[a].Count; b++)
                 {
                     steps.Add(step * (rand.Next(0, 100) - 50));
-                    
-                        //Console.WriteLine(steps[d]);
+                    //Console.WriteLine(steps[d]);
                     variables[a][b] += steps[a];
                     
-                }   
-                
+                }
             }
             accuracyAfterStep = neuralNetwork.estimateAccuracy();
             if (accuracyAfterStep <= accuracy)
@@ -243,7 +250,6 @@ namespace AI
 
                 }
             }*/
-
             foreach (Action a in functions) {
                 a();
             }
@@ -275,4 +281,3 @@ namespace AI
             Console.WriteLine(write);
         }
     }
-}
