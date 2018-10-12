@@ -29,7 +29,7 @@ namespace AI
             Console.WriteLine("Input: " + input[2][0] + ", " + neuralNetwork.runNetwork(input[2]));
 
             Console.WriteLine(neuralNetwork.runNetwork(new decimal[] { 1000 }));
-            Console.ReadLine();
+            while (true) { Console.ReadLine(); }
         }
 
     }

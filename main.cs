@@ -16,7 +16,7 @@ namespace AI
     }
     static class neuralNetwork
     {
-        public static int plateau = 100000;
+        public static int plateau = 10000;
         public static decimal constant = 5;
         public static decimal step = (decimal).0001;
         public static int topLayer = 2;
