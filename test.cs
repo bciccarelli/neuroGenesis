@@ -17,7 +17,7 @@ namespace AI
             neuralNetwork.createNode(1, 3);
 
             Console.WriteLine(neuralNetwork.estimateAccuracy()*100);
-            neuralNetwork.train("until cap", (decimal).90);
+            neuralNetwork.train("until cap", (decimal).95);
             
             Console.WriteLine("Achieved Accuracy: " + neuralNetwork.estimateAccuracy()*100 + "%");
             foreach (node n in neuralNetwork.nodes) {
@@ -25,7 +25,7 @@ namespace AI
                 logger.logNode(n);
             }
             Console.WriteLine("Input: " + input[0][0] + ", " + neuralNetwork.runNetwork(input[0]));
-            Console.WriteLine("Input: " + input[1][0] + ", " +  neuralNetwork.runNetwork(input[1]));
+            Console.WriteLine("Input: " + input[1][0] + ", " + neuralNetwork.runNetwork(input[1]));
             Console.WriteLine("Input: " + input[2][0] + ", " + neuralNetwork.runNetwork(input[2]));
 
             Console.WriteLine(neuralNetwork.runNetwork(new decimal[] { 1000 }));
