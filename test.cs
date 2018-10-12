@@ -5,8 +5,8 @@ namespace AI
 {
     class App
     {
-        public static List<decimal[]> input = new List<decimal[]> {a(1), a(2), a(3), a(4), a(5)};
-        public static List<decimal> output = new List<decimal> { 1, 4, 9, 16, 25 };
+        public static List<decimal[]> input = new List<decimal[]> {a(1), a(2), a(3), a(4), a(5), a(100) };
+        public static List<decimal> output = new List<decimal> { 21, 32, 43, 54, 65, 1110 };
         public static decimal[] a(double b) {
             return new decimal[] { (decimal)b };
         }
@@ -14,15 +14,16 @@ namespace AI
         {
             neuralData data = new neuralData(input, output);
             neuralNetwork.createNetwork(data);
-            neuralNetwork.createNode(1, 5);
+            neuralNetwork.createNode(1, 3);
 
             Console.WriteLine(neuralNetwork.estimateAccuracy()*100);
-            neuralNetwork.train((decimal).999);
-
+            neuralNetwork.train("until cap", (decimal).90);
+            
             Console.WriteLine("Achieved Accuracy: " + neuralNetwork.estimateAccuracy()*100 + "%");
-            logger.logNode(neuralNetwork.nodes[0]);
-            logger.logNode(neuralNetwork.nodes[1]);
-            logger.logNode(neuralNetwork.nodes[2]);
+            foreach (node n in neuralNetwork.nodes) {
+
+                logger.logNode(n);
+            }
             Console.WriteLine("Input: " + input[0][0] + ", " + neuralNetwork.runNetwork(input[0]));
             Console.WriteLine("Input: " + input[1][0] + ", " +  neuralNetwork.runNetwork(input[1]));
             Console.WriteLine("Input: " + input[2][0] + ", " + neuralNetwork.runNetwork(input[2]));
