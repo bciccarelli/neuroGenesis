@@ -1,353 +1,186 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Threading;
+
+#pragma warning disable 0649
 namespace AI
 {
-    class neuralData
+    class App
     {
-        public List<decimal[]> inputData;
-        public List<decimal> outputData;
-        public neuralData(List<decimal[]> input, List<decimal> output)
+        public static List<decimal[]> inputs = new List<decimal[]>();
+        
+        public static decimal[] outputs = new decimal[] { 1, 0, 0, 1, 1, 0, 0, 1 };
+
+        public static void Main(string[] args)
         {
-            inputData = input;
-            outputData = output;
+            inputs.Add(new decimal[] { 0, 1, 0 });
+            inputs.Add(new decimal[] { 1, 1, 0 });
+            inputs.Add(new decimal[] { 1, 1, 1 });
+            inputs.Add(new decimal[] { 0, 1, 1 });
+            inputs.Add(new decimal[] { 0, 0, 1 });
+            inputs.Add(new decimal[] { 1, 0, 1 });
+            inputs.Add(new decimal[] { 1, 0, 0 });
+            inputs.Add(new decimal[] { 0, 0, 0 });
+            network.applyWeights(3);
+            List<decimal> os = new List<decimal>();
+            os.Add(network.run(inputs[0]));
+            os.Add(network.run(inputs[1]));
+            os.Add(network.run(inputs[2]));
+            os.Add(network.run(inputs[3]));
+            Console.WriteLine("Output1: " + os[0]);
+            Console.WriteLine("Output2: " + os[1]);
+            Console.WriteLine("Output3: " + os[2]);
+            Console.WriteLine("Output4: " + os[3]);
+            network.train( inputs,  outputs, 100000);
+
+            Console.WriteLine("--------- After Training -------------");
+            os = new List<decimal>();
+            os.Add(network.run(inputs[0]));
+            os.Add(network.run(inputs[1]));
+            os.Add(network.run(inputs[2]));
+            os.Add(network.run(inputs[3]));
+
+            Console.WriteLine("Output1: " + os[0]);
+            Console.WriteLine("Output2: " + os[1]);
+            Console.WriteLine("Output3: " + os[2]);
+            Console.WriteLine("Output4: " + os[3]);
+            decimal x = 0;
+            for (int o = 0; o < os.Count; o++) {
+                x += os[o];
+            }
+            x /= 4;
+            for (int o = 0; o < os.Count; o++)
+            {
+                if (os[o] > x)
+                {
+                    os[o] = 1;
+                }
+                else {
+                    os[o] = 0;
+                }
+            }
+
+            Console.WriteLine("Equivalent To: "+os[0]);
+            Console.WriteLine("Equivalent To: " + os[1]);
+            Console.WriteLine("Equivalent To: " + os[2]);
+            Console.WriteLine("Equivalent To: " + os[3]);
+            Console.Read();
         }
+        
     }
-    static class neuralNetwork
-    {
-        public static int plateau = 10000;
-        public static decimal constant = 5;
-        public static decimal step = (decimal).001;
-        public static int topLayer = 2;
-        public static bool flexible;
-        public static neuralData data;
-        public static List<node> nodes = new List<node>();
+    static class network {
+        public static List<decimal> weights0 = new List<decimal>();
+        public static List<decimal> weights1 = new List<decimal>();
+        public static List<decimal> weights2 = new List<decimal>();
+        public static List<decimal> dweights0 = new List<decimal>();
+        public static List<decimal> dweights1 = new List<decimal>();
+        public static List<decimal> dweights2 = new List<decimal>();
+        public static List<decimal> _outputs;
+        public static List<decimal> _error;
+        public static List<decimal> _dot;
+        public static decimal a, b, _a, _b;
 
-        public static void createNetwork(neuralData Data)
+        public static void train(List<decimal[]> inputs, decimal[] outputs, int iterations)
         {
-            flexible = true;
-            data = Data;
-            nodes.Add(new node(typeof(decimal), false, 0, "start"));
-            nodes.Add(new node(typeof(decimal), true, 2, "end"));
-        }
-        public static void createNode(int layer, int num)
-        {
-            for (int k = 0; k < num; k++)
-            {
-                nodes.Insert(1, new node(typeof(decimal), false, layer, "node"+nodes.Count));
-                for (int j = 0; j < layer; j++)
+            _outputs = new List<decimal>();
+            _error = new List<decimal>();
+            _dot = new List<decimal>();
+            for (int j = 0; j < iterations; j++) {
+
+                for (int q = 0; q < inputs.Count-1; q++)
                 {
-                    for (int i = 1; i < nodes.Count; i++)
-                    {
-                        if (!nodes[i].pastNodes.Contains(nodes[i - 1].id))
-                        {
-                            nodes[i].pastNodes.Add(nodes[i - 1].id);
-                        };
-                    }
+                    _outputs.Add(run(inputs[q]));
                 }
-                for (int i = 0; i < nodes.Count; i++)
+                for (int q = 0; q < outputs.Length-1; q++)
                 {
-                    nodes[i].update();
+                    _error.Add(_outputs[q] - outputs[q]);
                 }
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    _error[q] *= d_sigmoid(outputs[q]);
+                }
+                _b = b;
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    _b*=_error[q];
+                }
+                _a = a;
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    _a*=_error[q];
+                }
+                weights2[0] += _a*100000000;
+                weights2[1] += _b*100000000;
+                
+                /*
+                decimal ca = weights2[0];
+                decimal cb = weights2[1];
+
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    ca *= _error[q];
+                    cb *= _error[q];
+                }
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    weights0[0] += ca * d_sigmoid(outputs[q]);
+                }
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    weights0[1] += ca * d_sigmoid(outputs[q]);
+                }
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    weights0[2] += ca * d_sigmoid(outputs[q]);
+                }
+                */
+
             }
+
         }
-        public static int getNodeByID(string id)
+        public static decimal run(decimal[] inputs)
         {
-            for (int i = 0; i < nodes.Count; i++)
-            {
-                if (nodes[i].id == id)
-                {
-                    return i;
-                }
-            }
-            Console.WriteLine("No such ID exists");
-            return -1;
-        }
-        public static decimal runNetwork(decimal[] input)
-        {
-            for (int i = 0; i < topLayer + 1; i++)
-            {
-                for (int j = 0; j < nodes.Count; j++)
-                {
-                    if (nodes[j].layer == i)
-                    {
-                        if (nodes[j].layer == topLayer)
-                        {
-                            nodes[j].act();
-
-                            //Console.WriteLine(nodes[j].add.Count);
-                            //Console.WriteLine(nodes[j].add[1].Count);
-
-                            //Console.WriteLine("Final node value: " + nodes[j].add[1][0]);
-
-                            return nodes[j].value[0];
-                        }
-                        if (nodes[j].layer == 0)
-                        {
-                            nodes[j].act(input);
-
-                        }
-                        else
-                        {
-                            nodes[j].act();
-                            //Console.WriteLine(nodes[j].id + " node value: " + nodes[j].value[0]);
-
-                        }
-                        //Console.WriteLine(n.value[0]);
-                    }
-                }
-            }
-            return (decimal)0;
-        }
-        public static decimal closeness(decimal data, decimal factor)
-        {
-            decimal num = (decimal)(1 - (Math.Abs(data / factor)));
-            //if (num < 0) {
-            //    num = 0;
-            //}
-            return num;
-        }
-        public static decimal estimateAccuracy()
-        {
-            decimal accuracy = 0;
             decimal value = 0;
-            for (int i = 0; i < data.inputData.Count; i++)
-            {
-                value = runNetwork(data.inputData[i]);
-                //Console.WriteLine("Current value: " + value + ", Expected value: " + data.outputData[i] + ", Accuracy: " + closeness(value - data.outputData[i], constant));
-                //Console.WriteLine(data.outputData.Count);
-                accuracy += closeness(value - data.outputData[i], constant) / data.outputData.Count;
-                //Console.WriteLine(accuracy);
+            for (int i = 0; i < inputs.Length-1; i++) {
+                value += weights0[i] * inputs[i];
             }
-            return accuracy;
-        }
-        public static void train(decimal minAccuracy)
-        {
-            decimal currentAccuracy = 0;
-            while (currentAccuracy < minAccuracy)
-            {
-                for (int i = 1; i < nodes.Count; i++)
-                {
-                    nodes[i].train(step);
-                }
-                currentAccuracy = estimateAccuracy();
-            }
-        }
-        public static void train(int numTimes)
-        {
-            while (numTimes > 0)
-            {
-                for (int i = 0; i < nodes.Count; i++)
-                {
-                    nodes[i].train(step);
-                    if (nodes[i].layer == topLayer)
-                    {
-                        //Console.WriteLine("Top layer. Add Length: " + nodes[i].add.Count + ", Add[0]: " + nodes[i].add[0] + ", Accuracy: " + estimateAccuracy());
-                    }
-                }
-                if (numTimes == 1000) { Console.WriteLine(1000); }
-                numTimes--;
-            }
+            a= (value);
 
-        }
-        public static void train(string info)
-        {
-            switch (info)
+            value = 0;
+            for (int i = 0; i < inputs.Length - 1; i++)
             {
-                case "until cap":
-                    decimal best = (decimal)0;
-                    for (int i = 0; i < plateau; i++)
-                    {
-                        for (int j = 0; j < nodes.Count; j++)
-                        {
-                            nodes[j].train(step);
-                        }
-                        decimal currentAcc = estimateAccuracy();
-                        if (currentAcc > best)
-                        {
-                            best = currentAcc;
-                            i = 0;
-                        }
-                    }
-                    break;
+                value += weights1[i] * inputs[i];
+            }
+            b = (value);
+
+            value = 0;
+            value += weights2[0] * a;
+            value += weights2[1] * b;
+            return sigmoid(value);
+        }
+        public static void applyWeights(int num) {
+            Random r = new Random();
+            for (int i = 0; i < 3; i++) {
+                weights0.Add((decimal)r.NextDouble()*2-1);
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                weights1.Add((decimal)r.NextDouble() * 2 - 1);
+            }
+            for (int i = 0; i < 2; i++)
+            {
+                weights2.Add((decimal)r.NextDouble() * 2 - 1);
             }
         }
-        public static void train(string info, decimal min)
+        
+        public static decimal sigmoid(decimal x)
         {
-            switch (info)
-            {
-                case "until cap":
-                    decimal best = (decimal)0;
-                    for (int i = 0; i < plateau; i++)
-                    {
-                        for (int j = 0; j < nodes.Count; j++)
-                        {
-                            nodes[j].train(step);
-                        }
-                        decimal currentAcc = estimateAccuracy();
-                        if (currentAcc > best)
-                        {
-                            best = currentAcc;
-                            i = 0;
-                        }
-                        if (best < min) {
-                            i = 0;
-                        }
-                    }
-                    break;
-            }
+            return (decimal)(1 / (1 + Math.Pow(Math.E, (double)-x)));
+        }
+        public static decimal d_sigmoid(decimal x)
+        {
+            return sigmoid(x) * (1 - sigmoid(x));
         }
     }
-    class node
-    {
 
-        public List<List<decimal>> variables = new List<List<decimal>>();
-        public List<decimal> value = new List<decimal>(new decimal[] { 0 });
-        public int layer;
-        public List<Action> functions;
-        public string id;
-        public List<string> pastNodes = new List<string>();
-        public void mult()
-        {
-            value[0] *= variables[0][0];
-            for (int i = 1; i < variables[0].Count; i++)
-            {
-                value[0] += variables[0][i] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[0];
-            }
-        }
-        public void add()
-        {
-            value[0] += variables[1][0];
-            for (int i = 1; i < variables[1].Count; i++)
-            {
-                value[0] += variables[1][i] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[0];
-            }
-        }
-
-        public void addEnd()
-        {
-            value[0] += variables[3][0];
-            for (int i = 1; i < variables[3].Count; i++)
-            {
-                value[0] += variables[3][i] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[0];
-            }
-        }
-        public void exp()
-        {
-            for (int i = 1; i < variables[2].Count; i++)
-            {
-                double v = (double)neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[0];
-                if (v >= 0)
-                {
-                    value[0] += (decimal)Math.Pow(v, (double)variables[2][i]);
-                }
-            }
-        }
-        public node(Type dataType, bool final, int layer, string id)
-        {
-            this.id = id;
-            this.layer = layer;
-            functions = new List<Action>(new Action[] { add, mult, exp, addEnd });
-            variables.Add(new List<decimal>());
-            variables.Add(new List<decimal>());
-            variables.Add(new List<decimal>());
-            variables.Add(new List<decimal>());
-            variables[0].Add(1);
-            variables[1].Add(1);
-            variables[2].Add(1);
-            variables[3].Add(1);
-        }
-        public void update()
-        {
-            while (pastNodes.Count > variables[0].Count - 1)
-            {
-                variables[0].Add(1);
-                variables[1].Add(1);
-                variables[2].Add(1);
-                variables[3].Add(1);
-            }
-        }
-        public void train(decimal step)
-        {
-            Random rand = new Random();
-            decimal accuracy;
-            List<decimal> steps = new List<decimal>();
-            //decimal step2;
-            decimal accuracyAfterStep;
-            accuracy = neuralNetwork.estimateAccuracy();
-            for (int a = 0; a < variables.Count; a++)
-            {
-                for (int b = 0; b < variables[a].Count; b++)
-                {
-                    steps.Add(step * (rand.Next(0, 100) - 50));
-                    //Console.WriteLine(steps[d]);
-                    variables[a][b] += steps[a];
-
-                }
-            }
-            accuracyAfterStep = neuralNetwork.estimateAccuracy();
-            if (accuracyAfterStep <= accuracy)
-            {
-                for (int a = 0; a < variables.Count; a++)
-                {
-                    for (int b = 0; b < variables[a].Count; b++)
-                    {
-                        //Console.WriteLine(steps[d]);
-                        variables[a][b] -= steps[a];
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine(accuracy);
-            }
-        }
-        public void act()
-        {
-            value[0] = 0;
-            /*for (int i = 1; i < add.Count; i++)
-            {
-                for (int j = 0; j < add[i].Count; j++)
-                {
-                    value[0] += add[i][j] * neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[j])].value[j];
-                    //Console.WriteLine("id: " + this.id + ", past id: " + pastNodes[i - 1] + ", past count " + (neuralNetwork.nodes[neuralNetwork.getNodeByID(pastNodes[i - 1])].value[0]));
-
-                }
-            }*/
-            foreach (Action a in functions)
-            {
-                a();
-            }
-
-            value[0] += variables[1][0];
-        }
-
-        public void act(decimal[] input)
-        {
-            value.Clear();
-            foreach (decimal f in input)
-            {
-                value.Add(f);
-            }
-        }
-    }
-    static class logger
-    {
-        static string write;
-        public static void logNode(node n)
-        {
-            write = "Add: ";
-            foreach (decimal d in n.variables[1])
-            {
-                write += "[" + d + "], ";
-            }
-            write += "... Multiply: ";
-            foreach (decimal d in n.variables[0])
-            {
-                write += "[" + d + "], ";
-            }
-            Console.WriteLine(write);
-        }
-    }
 }
