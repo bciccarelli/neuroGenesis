@@ -23,15 +23,20 @@ namespace AI
             inputs.Add(new decimal[] { 0, 0, 0 });
             network.applyWeights(3);
             List<decimal> os = new List<decimal>();
+            List<decimal> osa = new List<decimal>();
             os.Add(network.run(inputs[0]));
             os.Add(network.run(inputs[1]));
             os.Add(network.run(inputs[2]));
             os.Add(network.run(inputs[3]));
+            osa.Add(-os[0]);
+            osa.Add(-os[1]);
+            osa.Add(-os[2]);
+            osa.Add(-os[3]);
             Console.WriteLine("Output1: " + os[0]);
             Console.WriteLine("Output2: " + os[1]);
             Console.WriteLine("Output3: " + os[2]);
             Console.WriteLine("Output4: " + os[3]);
-            network.train( inputs,  outputs, 100000);
+            network.train( inputs,  outputs, 10000);
 
             Console.WriteLine("--------- After Training -------------");
             os = new List<decimal>();
@@ -39,31 +44,26 @@ namespace AI
             os.Add(network.run(inputs[1]));
             os.Add(network.run(inputs[2]));
             os.Add(network.run(inputs[3]));
+            osa[0] += os[0];
+            osa[1] += os[1];
+            osa[2] += os[2];
+            osa[3] += os[3];
 
             Console.WriteLine("Output1: " + os[0]);
             Console.WriteLine("Output2: " + os[1]);
             Console.WriteLine("Output3: " + os[2]);
             Console.WriteLine("Output4: " + os[3]);
-            decimal x = 0;
-            for (int o = 0; o < os.Count; o++) {
-                x += os[o];
-            }
-            x /= 4;
-            for (int o = 0; o < os.Count; o++)
-            {
-                if (os[o] > x)
-                {
-                    os[o] = 1;
-                }
-                else {
-                    os[o] = 0;
-                }
-            }
+            Console.WriteLine("Output Change 1: " + osa[0]);
+            Console.WriteLine("Output Change 2: " + osa[1]);
+            Console.WriteLine("Output Change 3: " + osa[2]);
+            Console.WriteLine("Output Change 4: " + osa[3]);
 
-            Console.WriteLine("Equivalent To: "+os[0]);
-            Console.WriteLine("Equivalent To: " + os[1]);
-            Console.WriteLine("Equivalent To: " + os[2]);
-            Console.WriteLine("Equivalent To: " + os[3]);
+
+            Console.WriteLine("Equivalent To: "+ Math.Round(os[0]));
+            Console.WriteLine("Equivalent To: " + Math.Round(os[1]));
+            Console.WriteLine("Equivalent To: " + Math.Round(os[2]));
+            Console.WriteLine("Equivalent To: " + Math.Round(os[3]));
+            Console.Read();
             Console.Read();
         }
         
@@ -72,86 +72,135 @@ namespace AI
         public static List<decimal> weights0 = new List<decimal>();
         public static List<decimal> weights1 = new List<decimal>();
         public static List<decimal> weights2 = new List<decimal>();
-        public static List<decimal> dweights0 = new List<decimal>();
-        public static List<decimal> dweights1 = new List<decimal>();
-        public static List<decimal> dweights2 = new List<decimal>();
         public static List<decimal> _outputs;
         public static List<decimal> _error;
-        public static List<decimal> _dot;
-        public static decimal a, b, _a, _b;
+        public static List<decimal> _weight_error;
+        public static List<decimal> _a;
+        public static List<decimal> _b;
+        public static decimal step = (decimal)100000;
+        public static decimal a, b;
 
         public static void train(List<decimal[]> inputs, decimal[] outputs, int iterations)
         {
-            _outputs = new List<decimal>();
-            _error = new List<decimal>();
-            _dot = new List<decimal>();
             for (int j = 0; j < iterations; j++) {
-
-                for (int q = 0; q < inputs.Count-1; q++)
+                _outputs = new List<decimal>();
+                _error = new List<decimal>();
+                _a = new List<decimal>();
+                _b = new List<decimal>();
+                for (int q = 0; q < inputs.Count; q++)
                 {
                     _outputs.Add(run(inputs[q]));
+
+                    _a.Add(a);
+                    _b.Add(b);
+                    //Console.WriteLine("a: "+a+", b: "+b);
                 }
-                for (int q = 0; q < outputs.Length-1; q++)
+                for (int q = 0; q < outputs.Length; q++)
                 {
-                    _error.Add(_outputs[q] - outputs[q]);
+                    _error.Add(outputs[q]-_outputs[q]);
+                    //Console.WriteLine(_error[q]);
                 }
-                for (int q = 0; q < outputs.Length - 1; q++)
-                {
-                    _error[q] *= d_sigmoid(outputs[q]);
-                }
-                _b = b;
-                for (int q = 0; q < outputs.Length - 1; q++)
-                {
-                    _b*=_error[q];
-                }
-                _a = a;
-                for (int q = 0; q < outputs.Length - 1; q++)
-                {
-                    _a*=_error[q];
-                }
-                weights2[0] += _a*100000000;
-                weights2[1] += _b*100000000;
                 
-                /*
-                decimal ca = weights2[0];
-                decimal cb = weights2[1];
+                for (int q = 0; q < outputs.Length; q++)
+                {
+                    _error[q] *= d_sigmoid(_outputs[q]);
+                    //Console.WriteLine("A Before: " + weights2[0]);
+                    weights2[0] += _a[q] * _error[q];
+                    //Console.WriteLine("A After: " + weights2[0]);
+                    //Console.WriteLine("B Before: " + weights2[1]);
+                    weights2[1] += _b[q] * _error[q];
+                    //Console.WriteLine("B After: " + weights2[1]);
+                }
+                
+                decimal cbg = -weights2[1];
+                decimal cbd = -weights2[1];
+                decimal cbe = -weights2[1];
+                decimal _temp = 0;
+                for (int q = 0; q < inputs.Count - 1; q++)
+                {
+                    _temp += inputs[q][0];
+                }
+                _temp/=3;
+                cbg *= _temp;
+                _temp = 0;
+                for (int q = 0; q < inputs.Count - 1; q++)
+                {
+                    _temp += inputs[q][1];
+                }
+                _temp /= 3;
+                cbd *= _temp;
+                _temp = 0;
+                for (int q = 0; q < inputs.Count - 1; q++)
+                {
+                    _temp += inputs[q][2];
+                }
+                _temp /= 3;
+                cbe *= _temp;
+                for (int q = 0; q < outputs.Length - 1; q++)
+                {
+                    cbg *= _error[q];
+                    cbd *= _error[q];
+                    cbe *= _error[q];
+
+                }
+                weights1[0] -= cbg * step;
+                weights1[1] -= cbd * step;
+                weights1[2] -= cbe * step;
+                
+                decimal cag = -weights2[0];
+                decimal cad = -weights2[0];
+                decimal cae = -weights2[0];
+                _temp = 0;
+                for (int q = 0; q < inputs.Count - 1; q++)
+                {
+                    _temp += inputs[q][0];
+                }
+                _temp /= 3;
+                cag *= _temp;
+                _temp = 0;
+                for (int q = 0; q < inputs.Count - 1; q++)
+                {
+                    _temp += inputs[q][1];
+                }
+                _temp /= 3;
+                cad *= _temp;
+                _temp = 0;
+                for (int q = 0; q < inputs.Count - 1; q++)
+                {
+                    _temp += inputs[q][2];
+                }
+                _temp /= 3;
+                cae *= _temp;
 
                 for (int q = 0; q < outputs.Length - 1; q++)
                 {
-                    ca *= _error[q];
-                    cb *= _error[q];
-                }
-                for (int q = 0; q < outputs.Length - 1; q++)
-                {
-                    weights0[0] += ca * d_sigmoid(outputs[q]);
-                }
-                for (int q = 0; q < outputs.Length - 1; q++)
-                {
-                    weights0[1] += ca * d_sigmoid(outputs[q]);
-                }
-                for (int q = 0; q < outputs.Length - 1; q++)
-                {
-                    weights0[2] += ca * d_sigmoid(outputs[q]);
-                }
-                */
+                    cag *= _error[q];
+                    cad *= _error[q];
+                    cae *= _error[q];
 
+                }
+                weights0[0] -= cag * step;
+                weights0[1] -= cad * step;
+                weights0[2] -= cae * step;
+                
+                //Console.WriteLine("After: "+weights0[0]);
             }
 
         }
         public static decimal run(decimal[] inputs)
         {
             decimal value = 0;
-            for (int i = 0; i < inputs.Length-1; i++) {
+            for (int i = 0; i < inputs.Length; i++) {
                 value += weights0[i] * inputs[i];
             }
-            a= (value);
+            a = value;
 
             value = 0;
-            for (int i = 0; i < inputs.Length - 1; i++)
+            for (int i = 0; i < inputs.Length; i++)
             {
                 value += weights1[i] * inputs[i];
             }
-            b = (value);
+            b = value;
 
             value = 0;
             value += weights2[0] * a;
@@ -162,14 +211,17 @@ namespace AI
             Random r = new Random();
             for (int i = 0; i < 3; i++) {
                 weights0.Add((decimal)r.NextDouble()*2-1);
+                //weights0.Add((decimal).2);
             }
             for (int i = 0; i < 3; i++)
             {
                 weights1.Add((decimal)r.NextDouble() * 2 - 1);
+                //weights1.Add((decimal).8);
             }
             for (int i = 0; i < 2; i++)
             {
-                weights2.Add((decimal)r.NextDouble() * 2 - 1);
+                //weights2.Add((decimal)r.NextDouble() * 2 - 1);
+                weights2.Add((decimal)1-i);
             }
         }
         
@@ -177,9 +229,13 @@ namespace AI
         {
             return (decimal)(1 / (1 + Math.Pow(Math.E, (double)-x)));
         }
+        public static decimal r_sigmoid(decimal x)
+        {
+            return (decimal)(Math.Log((double)(1/((1/x)-1))));
+        }
         public static decimal d_sigmoid(decimal x)
         {
-            return sigmoid(x) * (1 - sigmoid(x));
+            return (x) * (1 - (x));
         }
     }
 

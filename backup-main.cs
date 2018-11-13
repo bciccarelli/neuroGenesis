@@ -7,17 +7,17 @@ namespace AI
     {
         public static List<decimal[]> inputs = new List<decimal[]>();
         
-        public static decimal[] outputs = new decimal[] { 0, 1, 1, 0 };
+        public static decimal[] outputs = new decimal[] { 1, 0, 0, 1 };
 
         public static void Main(string[] args)
         {
 
-            inputs.Add(new decimal[] { 0, 1, 0 });
-            inputs.Add(new decimal[] { 1, 1, 0 });
+            inputs.Add(new decimal[] { 0, 0, 1 });
             inputs.Add(new decimal[] { 1, 0, 1 });
-            inputs.Add(new decimal[] { 0, 1, 1 });
+            inputs.Add(new decimal[] { 1, 0, 0 });
+            inputs.Add(new decimal[] { 0, 0, 0 });
             network.applyWeights(3);
-            network.train( inputs,  outputs, 1000);
+            network.train( inputs, outputs, 100 );
             Console.WriteLine(network.run(inputs[0]));
             Console.WriteLine(network.run(inputs[1]));
             Console.WriteLine(network.run(inputs[2]));
@@ -83,7 +83,7 @@ namespace AI
         }
         public static decimal d_sigmoid(decimal x)
         {
-            return sigmoid(x) * (1 - sigmoid(x));
+            return (x) * (1-x);
         }
     }
 
