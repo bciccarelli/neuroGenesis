@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-
 #pragma warning disable 0649
 namespace AI
 {
@@ -13,15 +12,15 @@ namespace AI
 
         public static void Main(string[] args)
         {
-            inputs.Add(new decimal[] { 0, 1, 0 });
-            inputs.Add(new decimal[] { 1, 1, 0 });
-            inputs.Add(new decimal[] { 1, 1, 1 });
-            inputs.Add(new decimal[] { 0, 1, 1 });
-            inputs.Add(new decimal[] { 0, 0, 1 });
-            inputs.Add(new decimal[] { 1, 0, 1 });
-            inputs.Add(new decimal[] { 1, 0, 0 });
-            inputs.Add(new decimal[] { 0, 0, 0 });
-            network.applyWeights(1, 1, 2, 3);
+            inputs.Add(new decimal[] { 0, 1, 1, 1 });
+            inputs.Add(new decimal[] { 1, 1, 0, 1 });
+            inputs.Add(new decimal[] { 1, 0, 1, 1 });
+            inputs.Add(new decimal[] { 0, 0, 0, 1 });
+            inputs.Add(new decimal[] { 0, 1, 1, 1 });
+            inputs.Add(new decimal[] { 1, 1, 0, 1 });
+            inputs.Add(new decimal[] { 1, 0, 1, 1 });
+            inputs.Add(new decimal[] { 0, 0, 0, 1 });
+            network.applyWeights(1, 2, 2, 4);
             List<decimal> os = new List<decimal>();
             List<decimal> osa = new List<decimal>();
             os.Add(network.run(inputs[0]));
@@ -95,14 +94,15 @@ namespace AI
                     _output=(run(inputs[q]));
                     _error=(outputs[q]-_output);
                     _error*=d_sigmoid(_output);
-                   
-                    weights[weights.Count-1][0][0] += values[0][0] * _error;
-                    weights[weights.Count-1][0][1] += values[0][1] * _error;
-                    for (int b = 0; b < weights[0].Count; b++)
+                    for (int i = 0; i < weights[weights.Count - 1][0].Count; i++)
                     {
-                        for (int i = 0; i < weights[0][b].Count; i++)
+                        weights[weights.Count - 1][0][i] += values[weights.Count-2][i] * _error;
+                    }
+                    for (int b = 0; b < weights[1].Count; b++)
+                    {
+                        for (int i = 0; i < weights[1][b].Count; i++)
                         {
-                            weights[0][b][i] += inputs[q][i] * weights[1][0][b] * _error;
+                            weights[1][b][i] += inputs[q][i] * weights[2][0][b] * _error;
                         }    
                     }
                 }
@@ -114,24 +114,27 @@ namespace AI
         public static decimal run(decimal[] inputs)
         {
             values = new List<List<decimal>>();
+            decimal value;
 
-            values.Add(new List<decimal>());
-            decimal value = 0;
-            for (int i = 0; i < inputs.Length; i++) {
-                value += weights[0][0][i] * inputs[i];
-            }
-            values[0].Add(value);
-
-            value = 0;
-            for (int i = 0; i < inputs.Length; i++)
+            for (int j = 0; j < weights.Count-1; j++)
             {
-                value += weights[0][1][i] * inputs[i];
+
+                values.Add(new List<decimal>());
+                for (int b = 0; b < weights[j].Count; b++)
+                {
+                    value = 0;
+                    for (int i = 0; i < inputs.Length; i++)
+                    {
+                        value += weights[j][b][i] * inputs[i];
+                    }
+                    values[j].Add(value);
+                }
             }
-            values[0].Add(value);
 
             value = 0;
-            value += weights[1][0][0] * values[0][0];
-            value += weights[1][0][1] * values[0][1];
+            for (int i = 0; i < weights[weights.Count-1][0].Count; i++) {
+                value += weights[weights.Count-1][0][i] * values[weights.Count-2][i];
+            }
             return sigmoid(value);
         }
         public static void applyWeights(int numOuts, int hiddenLayers, int width, int numIns) {
@@ -139,18 +142,23 @@ namespace AI
                 weights.Add(new List<List<decimal>>());
             }
             
-            weights[1].Add(new List<decimal>());
+            weights[weights.Count-1].Add(new List<decimal>());
 
             Random r = new Random();
-            for (int q = 0; q < width; q++) {
-                weights[0].Add(new List<decimal>());
-                for (int i = 0; i < numIns; i++) {
-                    weights[0][q].Add((decimal)r.NextDouble() * 2 - 1);
+            for (int b = 0; b < hiddenLayers; b++)
+            {
+                for (int q = 0; q < width; q++)
+                {
+                    weights[b].Add(new List<decimal>());
+                    for (int i = 0; i < numIns; i++)
+                    {
+                        weights[b][q].Add((decimal)r.NextDouble() * 2 - 1);
+                    }
                 }
             }
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < width; i++)
             {
-                weights[1][0].Add((decimal)r.NextDouble() * 2 - 1);
+                weights[weights.Count-1][0].Add((decimal)r.NextDouble() * 2 - 1);
             }
         }
         public static decimal sigmoid(decimal x)
