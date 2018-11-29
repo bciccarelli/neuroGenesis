@@ -20,7 +20,7 @@ namespace AI
             inputs.Add(new decimal[] { 1, 1, 0, 1 });
             inputs.Add(new decimal[] { 1, 0, 1, 1 });
             inputs.Add(new decimal[] { 0, 0, 0, 1 });
-            network.applyWeights(1, 2, 2, 4);
+            network.applyWeights(1, 10, 5, 4);
             List<decimal> os = new List<decimal>();
             List<decimal> osa = new List<decimal>();
             os.Add(network.run(inputs[0]));
@@ -35,7 +35,7 @@ namespace AI
             Console.WriteLine("Output2: " + os[1]);
             Console.WriteLine("Output3: " + os[2]);
             Console.WriteLine("Output4: " + os[3]);
-            network.train( inputs,  outputs, 1000);
+            network.train( inputs,  outputs, 100 );
 
             Console.WriteLine("--------- After Training -------------");
             os = new List<decimal>();
@@ -70,6 +70,8 @@ namespace AI
                 os.Add(network.run(inputs[1]));
                 os.Add(network.run(inputs[2]));
                 os.Add(network.run(inputs[3]));
+                Console.WriteLine("Neuron1: " + network.values[0][0]);
+                Console.WriteLine("Neuron2: " + network.values[0][1]);
                 Console.WriteLine("Output1: " + os[0]);
                 Console.WriteLine("Output2: " + os[1]);
                 Console.WriteLine("Output3: " + os[2]);
@@ -98,12 +100,15 @@ namespace AI
                     {
                         weights[weights.Count - 1][0][i] += values[weights.Count-2][i] * _error;
                     }
-                    for (int b = 0; b < weights[1].Count; b++)
+                    for (int a = 0; a < weights.Count-1; a++)
                     {
-                        for (int i = 0; i < weights[1][b].Count; i++)
+                        for (int b = 0; b < weights[a].Count; b++)
                         {
-                            weights[1][b][i] += inputs[q][i] * weights[2][0][b] * _error;
-                        }    
+                            for (int i = 0; i < weights[a][b].Count; i++)
+                            {
+                                weights[a][b][i] += inputs[q][i] * weights[weights.Count-1][0][b] * _error;
+                            }
+                        }
                     }
                 }
                 
