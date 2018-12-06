@@ -20,7 +20,7 @@ namespace AI
             inputs.Add(new decimal[] { -1, 0, -1, 0, 0, 1, 1, -1, 0 });
             inputs.Add(new decimal[] { 1, -1, 0, 1, 0, -1, 1, -1, 0 });
             inputs.Add(new decimal[] { -1, -1, -0, 0, 1, -0, -0, 0, 1 });
-            network.applyWeights(1, 3, 10, 9);
+            network.applyWeights(1, 2, 9, 9);
             List<decimal> os = new List<decimal>();
             List<decimal> osa = new List<decimal>();
             os.Add(network.run(inputs[0]));
@@ -112,6 +112,13 @@ namespace AI
                     {
                         weights[weights.Count - 1][0][i] += values[weights.Count-2][i] * _error;
                     }
+                    for (int b = 0; b < weights[weights.Count - 2].Count; b++)
+                    {
+                        for (int i = 0; i < weights[weights.Count - 2][b].Count; i++)
+                        {
+                            weights[weights.Count - 2][b][i] += weights[weights.Count - 1][0][b] * values[weights.Count - 3][i] * _error;
+                        }
+                    }
                     /*for (int k = 0; k < weights[weights.Count - 1][0].Count; k++)
                     {
                         for (int i = 0; i < weights[weights.Count - 2][0].Count; i++)
@@ -172,6 +179,7 @@ namespace AI
             weights[weights.Count-1].Add(new List<decimal>());
 
             Random r = new Random();
+            
             for (int q = 0; q < width; q++)
             {
                 weights[0].Add(new List<decimal>());
