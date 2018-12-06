@@ -20,59 +20,41 @@ namespace AI
             inputs.Add(new decimal[] { -1, 0, -1, 0, 0, 1, 1, -1, 0 });
             inputs.Add(new decimal[] { 1, -1, 0, 1, 0, -1, 1, -1, 0 });
             inputs.Add(new decimal[] { -1, -1, -0, 0, 1, -0, -0, 0, 1 });
-            network.applyWeights(1, 2, 9, 9);
+            network.applyWeights(1, 1, 9, 9);
             List<decimal> os = new List<decimal>();
             List<decimal> osa = new List<decimal>();
-            os.Add(network.run(inputs[0]));
-            os.Add(network.run(inputs[1]));
-            os.Add(network.run(inputs[2]));
-            os.Add(network.run(inputs[3]));
-            osa.Add(-os[0]);
-            osa.Add(-os[1]);
-            osa.Add(-os[2]);
-            osa.Add(-os[3]);
+            foreach (decimal[] i in inputs)
+            {
+                os.Add(network.run(i));
+            }
+            foreach (decimal o in os)
+            {
+                osa.Add(-o);
+            }
             Console.WriteLine("Output1: " + os[0]);
             Console.WriteLine("Output2: " + os[1]);
             Console.WriteLine("Output3: " + os[2]);
             Console.WriteLine("Output4: " + os[3]);
-            network.train( inputs,  outputs, 2000 );
+            network.train( inputs,  outputs, 5000 );
 
-            Console.WriteLine("--------- After Training -------------");
+            Console.WriteLine("------------- After Training -------------");
             os = new List<decimal>();
-            os.Add(network.run(inputs[0]));
-            os.Add(network.run(inputs[1]));
-            os.Add(network.run(inputs[2]));
-            os.Add(network.run(inputs[3]));
-            osa[0] += os[0];
-            osa[1] += os[1];
-            osa[2] += os[2];
-            osa[3] += os[3];
-            os.Add(network.run(inputs[4]));
-            os.Add(network.run(inputs[5]));
-            os.Add(network.run(inputs[6]));
-            os.Add(network.run(inputs[7]));
+            foreach (decimal[] i in inputs) {
 
-            Console.WriteLine("Output1: " + os[0]);
-            Console.WriteLine("Output2: " + os[1]);
-            Console.WriteLine("Output3: " + os[2]);
-            Console.WriteLine("Output4: " + os[3]);
-            Console.WriteLine("Output5: " + os[4]);
-            Console.WriteLine("Output6: " + os[5]);
-            Console.WriteLine("Output7: " + os[6]);
-            Console.WriteLine("Output8: " + os[7]);
-            Console.WriteLine("Output Change 1: " + osa[0]);
-            Console.WriteLine("Output Change 2: " + osa[1]);
-            Console.WriteLine("Output Change 3: " + osa[2]);
-            Console.WriteLine("Output Change 4: " + osa[3]);
-            
-            Console.WriteLine("Equivalent To: "+ Math.Round(os[0]));
-            Console.WriteLine("Equivalent To: " + Math.Round(os[1]));
-            Console.WriteLine("Equivalent To: " + Math.Round(os[2]));
-            Console.WriteLine("Equivalent To: " + Math.Round(os[3]));
-            Console.WriteLine("Equivalent To: " + Math.Round(os[4]));
-            Console.WriteLine("Equivalent To: " + Math.Round(os[5]));
-            Console.WriteLine("Equivalent To: " + Math.Round(os[6]));
-            Console.WriteLine("Equivalent To: " + Math.Round(os[7]));
+                os.Add(network.run(i));
+            }
+            for (int b = 0; b < os.Count; b++)
+            {
+                osa[b] += os[b];
+            }
+            foreach (decimal o in os) {
+                Console.WriteLine("Output: " + o);
+                Console.WriteLine("Equivalent Value: " + Math.Round(o));
+            }
+            foreach (decimal oa in osa)
+            {
+                Console.WriteLine("Output Change: " + oa);
+            }
             while (true){
                 Console.Read();
                 Console.Clear();
@@ -112,23 +94,17 @@ namespace AI
                     {
                         weights[weights.Count - 1][0][i] += values[weights.Count-2][i] * _error;
                     }
-                    for (int b = 0; b < weights[weights.Count - 2].Count; b++)
+                    if (weights.Count > 2)
                     {
-                        for (int i = 0; i < weights[weights.Count - 2][b].Count; i++)
+                        for (int b = 0; b < weights[weights.Count - 2].Count; b++)
                         {
-                            weights[weights.Count - 2][b][i] += weights[weights.Count - 1][0][b] * values[weights.Count - 3][i] * _error;
+                            for (int i = 0; i < weights[weights.Count - 2][b].Count; i++)
+                            {
+                                weights[weights.Count - 2][b][i] += weights[weights.Count - 1][0][b] * values[weights.Count - 3][i] * _error;
+                            }
                         }
                     }
-                    /*for (int k = 0; k < weights[weights.Count - 1][0].Count; k++)
-                    {
-                        for (int i = 0; i < weights[weights.Count - 2][0].Count; i++)
-                        {
-                            weights[weights.Count - 2][j][i] += values[weights.Count - 3][i] * _error;
-                        }
-                    }*/
                 }
-                
-                //Console.WriteLine("After: "+weights0[0]);
             }
 
         }
@@ -185,7 +161,7 @@ namespace AI
                 weights[0].Add(new List<decimal>());
                 for (int i = 0; i < numIns; i++)
                 {
-                    weights[0][q].Add((decimal)r.NextDouble() * 2 - 1);
+                    weights[0][q].Add((decimal)r.NextDouble() - (decimal).5);
                 }
             }
             for (int b = 1; b < hiddenLayers; b++)
@@ -195,13 +171,13 @@ namespace AI
                     weights[b].Add(new List<decimal>());
                     for (int i = 0; i < width; i++)
                     {
-                        weights[b][q].Add((decimal)r.NextDouble() * 2 - 1);
+                        weights[b][q].Add((decimal)r.NextDouble() - (decimal).5);
                     }
                 }
             }
             for (int i = 0; i < width; i++)
             {
-                weights[weights.Count-1][0].Add((decimal)r.NextDouble() * 2 - 1);
+                weights[weights.Count-1][0].Add((decimal)r.NextDouble() - (decimal).5);
             }
         }
         public static decimal sigmoid(decimal x)
